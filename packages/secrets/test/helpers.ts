@@ -47,6 +47,9 @@ export function tempDir(prefix = "rinci-secrets-") {
  * `stderr` and exits with `code`. A `.cmd` on Windows, a shell script elsewhere.
  */
 export function fakeCli(dir: string, name: string, { stdout = "", stderr = "", code = 0 } = {}): string {
+  // Providers spawn with the test's env, which has no PATH, so node is named absolutely.
+  const node = Bun.which("node")
+  if (!node) throw new Error("the CLI tests need node on PATH")
   const script = join(dir, `${name}.mjs`)
   writeFileSync(
     script,
@@ -60,11 +63,11 @@ export function fakeCli(dir: string, name: string, { stdout = "", stderr = "", c
   )
   if (process.platform === "win32") {
     const path = join(dir, `${name}.cmd`)
-    writeFileSync(path, `@node "${script}" %*\r\n`)
+    writeFileSync(path, `@"${node}" "${script}" %*\r\n`)
     return path
   }
   const path = join(dir, name)
-  writeFileSync(path, `#!/bin/sh\nexec node "${script}" "$@"\n`)
+  writeFileSync(path, `#!/bin/sh\nexec "${node}" "${script}" "$@"\n`)
   chmodSync(path, 0o755)
   return path
 }

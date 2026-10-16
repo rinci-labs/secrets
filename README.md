@@ -39,24 +39,17 @@ The `release` workflow tests, builds and publishes with npm provenance. It needs
 
 ## Deploy the site
 
-The site is static and builds to `apps/site/dist`. Pick one of two ways to deploy it.
+The site is static and builds to `apps/site/dist`. Cloudflare Pages deploys it through its Git integration: `main` to production, every other branch to a preview URL. The Pages project `rinci-secrets` uses:
 
-**GitHub Actions** (included): the `site` workflow deploys `main` to production and each pull request to a preview URL. It needs two repository secrets, `CLOUDFLARE_API_TOKEN` (with _Cloudflare Pages: Edit_) and `CLOUDFLARE_ACCOUNT_ID`, and a Pages project named `rinci-secrets`:
+| Setting               | Value                                                                           |
+| --------------------- | ------------------------------------------------------------------------------- |
+| Framework preset      | None                                                                            |
+| Root directory        | `/`                                                                             |
+| Build command         | `bun install --frozen-lockfile && bun run --filter @rinci/secrets-site build`   |
+| Build output          | `apps/site/dist`                                                                |
+| Environment variables | `BUN_VERSION` = the contents of `.bun-version`, `SKIP_DEPENDENCY_INSTALL` = `1` |
 
-```sh
-bunx wrangler pages project create rinci-secrets --production-branch main
-```
-
-**Cloudflare Git integration**: connect the repo in the Pages dashboard with:
-
-| Setting              | Value                                                                         |
-| -------------------- | ----------------------------------------------------------------------------- |
-| Root directory       | `/`                                                                           |
-| Build command        | `bun install --frozen-lockfile && bun run --filter @rinci/secrets-site build` |
-| Build output         | `apps/site/dist`                                                              |
-| Environment variable | `BUN_VERSION` = the contents of `.bun-version`                                |
-
-Then add `secrets.rin.ci` as a custom domain on the project.
+`SKIP_DEPENDENCY_INSTALL` stops Pages from running its own install first, which would not understand the `workspace:` dependencies. The build fails if any page is missing its share card or has a broken link. `secrets.rin.ci` is the custom domain on the project.
 
 From a laptop, `bun run --filter @rinci/secrets-site deploy` builds and uploads directly.
 
