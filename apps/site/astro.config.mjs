@@ -1,4 +1,5 @@
 // @ts-check
+import { fileURLToPath } from "node:url"
 import tailwindcss from "@tailwindcss/vite"
 import { defineConfig } from "astro/config"
 import { rinciTheme } from "./src/shiki-theme.mjs"
@@ -9,7 +10,14 @@ export default defineConfig({
   site: "https://secrets.rin.ci",
   trailingSlash: "never",
   build: { format: "file" },
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [tailwindcss()],
+    // The provider catalog is read from the package source at build time, so
+    // the site never needs the package built first and cannot drift from it.
+    resolve: {
+      alias: { "@secrets-src": fileURLToPath(new URL("../../packages/secrets/src", import.meta.url)) },
+    },
+  },
   markdown: {
     shikiConfig: { theme: rinciTheme, wrap: false },
   },

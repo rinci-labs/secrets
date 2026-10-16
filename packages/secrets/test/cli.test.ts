@@ -43,7 +43,20 @@ describe("cli", () => {
   test("providers lists every provider", () => {
     const { code, stdout } = cli("providers")
     expect(code).toBe(0)
-    for (const name of ["infisical", "doppler", "vault", "aws", "gcp", "azure", "1password", "bitwarden", "dotenv"]) {
+    for (const name of [
+      "infisical",
+      "doppler",
+      "vault",
+      "aws",
+      "aws-ssm",
+      "gcp",
+      "azure",
+      "1password",
+      "bitwarden",
+      "sops",
+      "dotenv",
+      "exec",
+    ]) {
       expect(stdout).toContain(name)
     }
   })

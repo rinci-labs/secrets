@@ -41,6 +41,13 @@ export const TEMPLATES: Record<string, { config: SecretsConfig; next: string }> 
     },
     next: "export AWS credentials (e.g. `aws configure export-credentials --format env`), then set secretId",
   },
+  "aws-ssm": {
+    config: {
+      $schema: SCHEMA,
+      sources: [{ provider: "aws-ssm", region: "us-east-1", path: "/myapp/${SECRETS_ENV:-dev}" }],
+    },
+    next: "export AWS credentials (e.g. `aws configure export-credentials --format env`), then set path",
+  },
   gcp: {
     config: {
       $schema: SCHEMA,
@@ -67,8 +74,26 @@ export const TEMPLATES: Record<string, { config: SecretsConfig; next: string }> 
     },
     next: "put BWS_ACCESS_TOKEN in .env.bitwarden, then set projectId",
   },
+  sops: {
+    config: { $schema: SCHEMA, sources: [{ provider: "sops", file: "secrets.${SECRETS_ENV:-dev}.env" }] },
+    next: "encrypt the file with `sops encrypt -i secrets.dev.env`, and make the key available (e.g. SOPS_AGE_KEY_FILE)",
+  },
   dotenv: {
     config: { $schema: SCHEMA, sources: [{ provider: "dotenv", path: [".env", ".env.local"], required: false }] },
     next: "add your values to .env and .env.local",
+  },
+  exec: {
+    config: {
+      $schema: SCHEMA,
+      sources: [
+        {
+          provider: "exec",
+          command: "esc",
+          args: ["env", "open", "myorg/myapp/${SECRETS_ENV:-dev}", "--format", "dotenv"],
+          withhold: ["PULUMI_ACCESS_TOKEN"],
+        },
+      ],
+    },
+    next: "point command and args at any CLI that prints JSON or dotenv (this example is Pulumi ESC)",
   },
 }

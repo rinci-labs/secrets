@@ -1,6 +1,6 @@
 # @rinci/secrets
 
-One entry point for every secrets manager. Fetch from Infisical, Doppler, Vault, AWS, GCP, Azure, 1Password, Bitwarden or `.env` files, then run any command with the values in its environment.
+One entry point for every secrets manager. Fetch from Infisical, Doppler, Vault, AWS Secrets Manager and Parameter Store, Google Cloud, Azure, 1Password, Bitwarden, SOPS files, `.env` files or any other manager with a CLI, then run any command with the values in its environment.
 
 - **One config, many sources**: read in parallel, merged in order, later sources win.
 - **Safe by default**: no credentials in the config, provider credentials withheld from your app, fails closed, no shell, HTTPS enforced for public hosts, minted tokens revoked.

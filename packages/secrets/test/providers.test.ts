@@ -243,6 +243,51 @@ describe("aws", () => {
   })
 })
 
+describe("aws-ssm", () => {
+  const creds = { AWS_ACCESS_KEY_ID: "AKID", AWS_SECRET_ACCESS_KEY: "secret", AWS_REGION: "eu-central-1" }
+
+  test("reads every parameter under a path, across pages, decrypted", async () => {
+    const api = mockFetch({
+      "POST /": (call) => {
+        const body = JSON.parse(call.body ?? "{}")
+        expect(call.headers.get("x-amz-target")).toBe("AmazonSSM.GetParametersByPath")
+        expect(body).toMatchObject({ Path: "/myapp/prod", Recursive: true, WithDecryption: true })
+        return body.NextToken
+          ? { Parameters: [{ Name: "/myapp/prod/db/URL", Value: "postgres://x" }] }
+          : { Parameters: [{ Name: "/myapp/prod/API_KEY", Value: "k" }], NextToken: "page-2" }
+      },
+    })
+    const result = await load({ provider: "ssm", path: "myapp/prod/" }, creds, api.fn)
+    expect(result.secrets).toEqual({ API_KEY: "k", db_URL: "postgres://x" })
+    expect(api.calls).toHaveLength(2)
+    expect(api.calls[0]?.url.host).toBe("ssm.eu-central-1.amazonaws.com")
+    expect(api.calls[0]?.headers.get("authorization")).toContain("/eu-central-1/ssm/aws4_request")
+  })
+
+  test("reads a list of names, and a missing one is an error", async () => {
+    const api = mockFetch({
+      "POST /": (call) => {
+        const { Names } = JSON.parse(call.body ?? "{}")
+        return Names.includes("/nope")
+          ? { Parameters: [], InvalidParameters: ["/nope"] }
+          : { Parameters: [{ Name: "/shared/stripe", Value: "sk" }] }
+      },
+    })
+    const result = await load({ provider: "parameter-store", parameters: { STRIPE: "/shared/stripe" } }, creds, api.fn)
+    expect(result.secrets).toEqual({ STRIPE: "sk" })
+    await expect(load({ provider: "aws-ssm", parameters: ["/nope"] }, creds, api.fn)).rejects.toThrow(
+      "no parameter named /nope",
+    )
+  })
+
+  test("needs a path or names, and credentials", async () => {
+    await expect(load({ provider: "aws-ssm" }, creds)).rejects.toThrow('set "path" or "parameters"')
+    await expect(load({ provider: "aws-ssm", path: "/x", region: "us-east-1" })).rejects.toThrow(
+      "aws-ssm: no credentials",
+    )
+  })
+})
+
 describe("gcp", () => {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 })
   const keyFile = join(tmp.dir, "sa.json")
@@ -457,6 +502,55 @@ describe("bitwarden", () => {
     await expect(load({ provider: "bitwarden" })).rejects.toThrow("bitwarden: no credentials")
     const cli = fakeCli(tmp.dir, "bws2", { stdout: "not json" })
     await expect(load({ provider: "bitwarden", cli }, { BWS_ACCESS_TOKEN: "t" })).rejects.toThrow("invalid JSON")
+  })
+})
+
+describe("sops", () => {
+  test("decrypts to JSON through the CLI, relative to the config, and withholds the age key", async () => {
+    const cli = fakeCli(tmp.dir, "sops", { stdout: JSON.stringify({ DB: "x", PORT: 5432, nested: { a: 1 } }) })
+    const result = await load({ provider: "sops", file: "secrets.prod.env", cli }, { SOPS_AGE_KEY: "AGE-SECRET-KEY-1" })
+    expect(result.secrets).toEqual({ DB: "x", PORT: "5432", nested: '{"a":1}' })
+    expect(result.withhold).toContain("SOPS_AGE_KEY")
+    const args = JSON.parse(readFileSync(join(tmp.dir, "sops.args.json"), "utf8"))
+    expect(args).toEqual(["--decrypt", "--output-type", "json", join(tmp.dir, "secrets.prod.env")])
+  })
+
+  test("a file that is not a map, a missing file option, and flag-like values are errors", async () => {
+    const cli = fakeCli(tmp.dir, "sops2", { stdout: "[1,2]" })
+    await expect(load({ provider: "sops", file: "x.json", cli })).rejects.toThrow("does not hold a map")
+    await expect(load({ provider: "sops" })).rejects.toThrow('"file" is required')
+    await expect(load({ provider: "sops", file: "x.env", inputType: "--exec-env" })).rejects.toThrow(
+      "does not start with '-'",
+    )
+  })
+})
+
+describe("exec", () => {
+  test("reads dotenv output by default, in the config's directory", async () => {
+    const cli = fakeCli(tmp.dir, "esc", { stdout: 'API_KEY="k"\nDATABASE_URL=postgres://x\n' })
+    const result = await load({ provider: "exec", command: cli, args: ["env", "open", "org/app/dev"] })
+    expect(result.secrets).toEqual({ API_KEY: "k", DATABASE_URL: "postgres://x" })
+    expect(JSON.parse(readFileSync(join(tmp.dir, "esc.args.json"), "utf8"))).toEqual(["env", "open", "org/app/dev"])
+  })
+
+  test("reads JSON, or the whole output under a key", async () => {
+    const json = fakeCli(tmp.dir, "json-cli", { stdout: '{"A":"1","B":true}' })
+    expect((await load({ provider: "command", command: json })).secrets).toEqual({ A: "1", B: "true" })
+    const raw = fakeCli(tmp.dir, "raw-cli", { stdout: "one-token\n" })
+    expect((await load({ provider: "exec", command: raw, key: "TOKEN" })).secrets).toEqual({ TOKEN: "one-token" })
+  })
+
+  test("withhold removes the source's own credentials from the child", async () => {
+    const cli = fakeCli(tmp.dir, "esc2", { stdout: "A=1\n" })
+    const result = await load({ provider: "exec", command: cli, withhold: ["PULUMI_ACCESS_TOKEN"] })
+    expect(result.withhold).toEqual(["PULUMI_ACCESS_TOKEN"])
+  })
+
+  test("a failing or missing command is reported", async () => {
+    const cli = fakeCli(tmp.dir, "fail-cli", { stderr: "not logged in", code: 2 })
+    await expect(load({ provider: "exec", command: cli })).rejects.toThrow("not logged in")
+    await expect(load({ provider: "exec", command: "definitely-not-a-cli-xyz" })).rejects.toThrow("not installed")
+    await expect(load({ provider: "exec" })).rejects.toThrow('"command" is required')
   })
 })
 

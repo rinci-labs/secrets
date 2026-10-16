@@ -25,3 +25,4 @@ export {
   signAwsRequest,
 } from "./providers/index.js"
 export { type RunOptions, type RunResult, runWithSecrets } from "./run.js"
+export { TEMPLATES } from "./templates.js"

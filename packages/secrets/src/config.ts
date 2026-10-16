@@ -5,12 +5,14 @@ import { dirname, join, resolve } from "node:path"
 import { SecretsError } from "./errors.js"
 
 export interface SourceConfig {
-  /** Provider name: infisical, doppler, vault, aws, gcp, azure, 1password, bitwarden, dotenv. */
+  /** Provider name: infisical, doppler, vault, aws, aws-ssm, gcp, azure, 1password, bitwarden, sops, dotenv, exec. */
   provider: string
   /** Label used by `--source` and in logs. Defaults to the provider name. */
   name?: string
   /** When true, a failure is logged and skipped instead of stopping the run. */
   optional?: boolean
+  /** Extra credential variables this source logs in with, removed from the child like the built-in ones. */
+  withhold?: string[]
   /** Provider-specific options. Strings support `${VAR}` and `${VAR:-default}`. */
   [option: string]: unknown
 }
@@ -102,8 +104,11 @@ export function validateConfig(raw: unknown, where = "config"): SecretsConfig {
   const names = new Set<string>()
   ;(config.sources as unknown[]).forEach((source, i) => {
     if (!source || typeof source !== "object" || Array.isArray(source)) fail(`sources[${i}] must be an object`)
-    const { provider, name } = source as SourceConfig
+    const { provider, name, withhold } = source as SourceConfig
     if (typeof provider !== "string" || !provider) fail(`sources[${i}].provider is required`)
+    if (withhold !== undefined && !(Array.isArray(withhold) && withhold.every((w) => typeof w === "string"))) {
+      fail(`sources[${i}].withhold must be an array of variable names`)
+    }
     const label = typeof name === "string" && name ? name : provider
     if (names.has(label)) fail(`two sources are named "${label}"; give one a "name"`)
     names.add(label)

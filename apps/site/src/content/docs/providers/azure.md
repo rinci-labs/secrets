@@ -3,7 +3,7 @@ title: Azure Key Vault
 label: Azure
 description: Every enabled secret in an Azure Key Vault, or a chosen list, through a service principal or an access token. Dashes become underscores.
 group: Providers
-order: 6
+order: 7
 ---
 
 ```json

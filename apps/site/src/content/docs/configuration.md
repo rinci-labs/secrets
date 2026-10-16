@@ -43,11 +43,12 @@ Unknown keys are an error, so a typo does not silently do nothing.
 
 ## Sources
 
-Every source has a `provider` and that provider's options, listed on its [provider page](/docs/providers). Three options work on any source:
+Every source has a `provider` and that provider's options, listed on its [provider page](/docs/providers). Four options work on any source:
 
 - **`name`**: a label for logs and `--source`. It defaults to the provider name, and must be unique when a provider appears twice.
 - **`optional`**: when `true`, a failure is logged and the source is skipped. Otherwise any failure stops the run before the command starts.
 - **`timeoutMs`**: the per-request timeout, 15 seconds by default.
+- **`withhold`**: extra variable names to remove from your command's environment, on top of the provider's own credentials. Use it for the token of a CLI read through [`exec`](/docs/providers/exec).
 
 ### Merge order
 
@@ -101,7 +102,7 @@ The command starts with the current environment, plus the secrets, minus provide
 
 - **`override`** (`--no-override` to turn off): when `false`, a variable that is already set keeps its value, and the run reports which secrets were skipped.
 - **`pure`** (`--pure`): start from a minimal set (`PATH`, `HOME`, locale, temp directories and the Windows system variables) instead of everything. Useful to prove an app gets nothing it should not.
-- **`keepCredentials`** (`--keep-credentials`): by default, variables such as `INFISICAL_CLIENT_SECRET`, `DOPPLER_TOKEN` and `VAULT_TOKEN` are removed before the command starts. Your app needs the secrets, not the identity that fetched them. General cloud credentials such as `AWS_ACCESS_KEY_ID` are never removed, because apps often use them directly.
+- **`keepCredentials`** (`--keep-credentials`): by default, variables such as `INFISICAL_CLIENT_SECRET`, `DOPPLER_TOKEN` and `VAULT_TOKEN`, plus anything a source lists in `withhold`, are removed before the command starts. Your app needs the secrets, not the identity that fetched them. General cloud credentials such as `AWS_ACCESS_KEY_ID` are never removed, because apps often use them directly.
 
 On Windows, variable names are matched without regard to case, as Windows does.
 

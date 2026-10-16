@@ -5,7 +5,7 @@ export const site = {
   title: "RINCI Secrets - one entry point for every secrets manager",
   /** Kept under about 155 characters so search results show it whole. */
   description:
-    "Run any command with secrets from Infisical, Doppler, Vault, AWS, GCP, Azure, 1Password or Bitwarden. One config, zero dependencies, safe by default.",
+    "Run any command with secrets from Infisical, Doppler, Vault, AWS, GCP, Azure, 1Password, Bitwarden, SOPS or any CLI. One config, zero dependencies.",
   themeColor: "#0a0b0a",
   packageName: "@rinci/secrets",
   bin: "rinci-secrets",

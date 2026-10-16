@@ -59,7 +59,9 @@ export function spawnCommand(
 ): ChildProcess {
   if (process.platform !== "win32") return spawn(command, args, { ...options, shell: false })
 
-  const resolved = resolveWindowsCommand(command, options.env)
+  const relative = !isAbsolute(command) && /[\\/]/.test(command)
+  const cwd = typeof options.cwd === "string" ? options.cwd : undefined
+  const resolved = resolveWindowsCommand(relative && cwd ? join(cwd, command) : command, options.env)
   if (!resolved) {
     throw Object.assign(new Error(`spawn ${command} ENOENT`), { code: "ENOENT", path: command })
   }

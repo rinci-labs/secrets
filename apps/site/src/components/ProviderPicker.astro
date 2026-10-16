@@ -1,0 +1,151 @@
+---
+import { Code } from "astro:components"
+import type { CatalogEntry } from "../lib/catalog"
+import { rinciTheme } from "../shiki-theme.mjs"
+import { site } from "../site"
+
+interface Props {
+  providers: CatalogEntry[]
+}
+
+const { providers } = Astro.props
+// Odd parts were inside `backticks` and render as code.
+const sentence = (text: string) => `${text.charAt(0).toUpperCase()}${text.slice(1)}.`.split("`")
+---
+
+<div data-picker>
+  <div role="tablist" aria-label="Secrets manager" class="flex flex-wrap gap-2">
+    {
+      providers.map((provider, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`tab-${provider.name}`}
+          aria-controls={`setup-${provider.name}`}
+          aria-selected={index === 0 ? "true" : "false"}
+          tabindex={index === 0 ? 0 : -1}
+          class="picker-tab border border-line px-3 py-2 text-[13px] text-dim transition-colors hover:border-faint hover:text-paper"
+        >
+          {provider.label}
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    providers.map((provider, index) => (
+      <div
+        role="tabpanel"
+        id={`setup-${provider.name}`}
+        aria-labelledby={`tab-${provider.name}`}
+        hidden={index !== 0}
+        class="mt-8 grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]"
+      >
+        <ol class="space-y-7">
+          <li class="grid grid-cols-[2.25rem_minmax(0,1fr)]">
+            <span class="font-mono text-[13px] text-faint">01</span>
+            <div>
+              <p class="text-[14.5px] text-paper">Install</p>
+              <div class="mt-2.5">
+                <Code code={`bun add -d ${site.packageName}`} lang="sh" theme={rinciTheme} />
+              </div>
+            </div>
+          </li>
+          <li class="grid grid-cols-[2.25rem_minmax(0,1fr)]">
+            <span class="font-mono text-[13px] text-faint">02</span>
+            <div>
+              <p class="text-[14.5px] text-paper">Write the config</p>
+              <div class="mt-2.5">
+                <Code code={`bunx rsec init ${provider.name}`} lang="sh" theme={rinciTheme} />
+              </div>
+            </div>
+          </li>
+          <li class="grid grid-cols-[2.25rem_minmax(0,1fr)]">
+            <span class="font-mono text-[13px] text-faint">03</span>
+            <div>
+              <p class="text-[14.5px] text-paper">Give it access</p>
+              <p class="mt-1.5 text-[14px] leading-relaxed text-dim">
+                {sentence(provider.next).map((part, i) =>
+                  i % 2 ? <code class="font-mono text-[12.5px] text-paper">{part}</code> : part,
+                )}
+              </p>
+              {provider.credentials.length > 0 && (
+                <ul class="mt-3 flex flex-wrap gap-1.5" aria-label="Credential variables">
+                  {provider.credentials.map((name) => (
+                    <li class="border border-line bg-ink-2 px-2 py-1 font-mono text-[11.5px] text-dim">{name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </li>
+          <li class="grid grid-cols-[2.25rem_minmax(0,1fr)]">
+            <span class="font-mono text-[13px] text-faint">04</span>
+            <div>
+              <p class="text-[14.5px] text-paper">Run with secrets</p>
+              <div class="mt-2.5">
+                <Code code="bunx rsec run -- bun dev" lang="sh" theme={rinciTheme} />
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="min-w-0">
+          <p class="pixel-type text-[11px] text-faint">secrets.config.json</p>
+          <div class="mt-3">
+            <Code code={provider.config} lang="json" theme={rinciTheme} />
+          </div>
+          <a
+            href={provider.href}
+            class="mt-5 inline-block text-[13.5px] text-dim underline decoration-faint underline-offset-4 transition-colors hover:text-paper hover:decoration-signal"
+          >
+            The full {provider.label} guide →
+          </a>
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  // Tabs per the ARIA pattern: click or arrow keys select, Home and End jump.
+  for (const picker of document.querySelectorAll<HTMLElement>("[data-picker]")) {
+    const tabs = [...picker.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      for (const other of tabs) {
+        const active = other === tab
+        other.setAttribute("aria-selected", String(active))
+        other.tabIndex = active ? 0 : -1
+        const panel = document.getElementById(other.getAttribute("aria-controls") ?? "")
+        if (panel) panel.hidden = !active
+      }
+      if (focus) tab.focus()
+    }
+    for (const tab of tabs) {
+      tab.addEventListener("click", () => select(tab))
+      tab.addEventListener("keydown", (event) => {
+        const index = tabs.indexOf(tab)
+        const next =
+          event.key === "ArrowRight" || event.key === "ArrowDown"
+            ? tabs[(index + 1) % tabs.length]
+            : event.key === "ArrowLeft" || event.key === "ArrowUp"
+              ? tabs[(index - 1 + tabs.length) % tabs.length]
+              : event.key === "Home"
+                ? tabs[0]
+                : event.key === "End"
+                  ? tabs.at(-1)
+                  : undefined
+        if (!next) return
+        event.preventDefault()
+        select(next, true)
+      })
+    }
+  }
+</script>
+
+<style>
+  .picker-tab[aria-selected="true"] {
+    border-color: var(--color-signal);
+    background-color: var(--color-ink-2);
+    color: var(--color-paper);
+  }
+</style>

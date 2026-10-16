@@ -40,6 +40,12 @@
     outline: 2px solid var(--color-signal);
     outline-offset: 2px;
   }
+
+  /* Hairline scrollbars in the brand colours, for code and wide tables. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
 }
 
 /* The hero's ASCII field: quieter where the type sits, fading out at the bottom. */

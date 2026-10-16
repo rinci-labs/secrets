@@ -3,7 +3,7 @@ title: .env files
 label: dotenv
 description: Local .env files as a source. For development, local overrides layered on a remote source, or an offline fallback.
 group: Providers
-order: 9
+order: 11
 ---
 
 ```json

@@ -291,12 +291,17 @@ describe("providers registry", () => {
       "doppler",
       "vault",
       "aws",
+      "aws-ssm",
       "gcp",
       "azure",
       "1password",
       "bitwarden",
+      "sops",
       "dotenv",
+      "exec",
     ])
+    expect(getProvider("ssm").name).toBe("aws-ssm")
+    expect(getProvider("command").name).toBe("exec")
   })
 
   test("option helpers validate types", () => {

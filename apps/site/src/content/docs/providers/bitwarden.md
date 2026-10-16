@@ -3,7 +3,7 @@ title: Bitwarden Secrets Manager
 label: Bitwarden
 description: All secrets a Bitwarden machine account can see, or one project's, through the bws CLI. Self-hosted servers supported.
 group: Providers
-order: 8
+order: 9
 ---
 
 ```json

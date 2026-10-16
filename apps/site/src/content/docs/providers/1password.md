@@ -2,7 +2,7 @@
 title: 1Password
 description: Fields of a 1Password item through the op CLI, with a service account token or the desktop app. Labels become variable names.
 group: Providers
-order: 7
+order: 8
 ---
 
 ```json

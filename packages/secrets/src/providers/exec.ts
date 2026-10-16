@@ -5,20 +5,40 @@ import type { Env } from "./types.js"
 
 const MAX_OUTPUT = 16 * 1024 * 1024
 
+export interface ExecOptions {
+  env: Env
+  /** Names the call in errors, e.g. "1Password read (app)". */
+  what: string
+  /** Shown when the command is not on PATH. */
+  install: string
+  timeoutMs?: number
+  cwd?: string
+}
+
+/** Runs a vendor CLI and parses its stdout as JSON. */
+export async function execJson<T>(command: string, args: string[], options: ExecOptions): Promise<T> {
+  const text = await execText(command, args, options)
+  try {
+    return JSON.parse(text) as T
+  } catch (cause) {
+    throw new SecretsError(`${options.what} printed invalid JSON`, { cause })
+  }
+}
+
 /**
- * Runs a vendor CLI and parses its JSON stdout. Goes through `spawnCommand`,
- * so there is no shell, arguments from the config cannot be read as shell
- * syntax, and Windows `.cmd` installs of a CLI still work.
+ * Runs a command and returns its stdout. Goes through `spawnCommand`, so there
+ * is no shell, arguments from the config cannot be read as shell syntax, and
+ * Windows `.cmd` installs of a CLI still work.
  */
-export function execJson<T>(
+export function execText(
   command: string,
   args: string[],
-  { env, what, install, timeoutMs = 30_000 }: { env: Env; what: string; install: string; timeoutMs?: number },
-): Promise<T> {
+  { env, what, install, timeoutMs = 30_000, cwd }: ExecOptions,
+): Promise<string> {
   return new Promise((resolve, reject) => {
     let child: ReturnType<typeof spawnCommand>
     try {
-      child = spawnCommand(command, args, { env, stdio: ["ignore", "pipe", "pipe"], windowsHide: true })
+      child = spawnCommand(command, args, { env, cwd, stdio: ["ignore", "pipe", "pipe"], windowsHide: true })
     } catch (error) {
       reject(notInstalled(error, command, what, install))
       return
@@ -50,11 +70,7 @@ export function execJson<T>(
         const detail = sanitize(Buffer.concat(stderr).toString("utf8").split("\n").slice(-3).join(" "))
         return reject(new SecretsError(`${what} failed: ${detail || `exit code ${code}`}`))
       }
-      try {
-        resolve(JSON.parse(Buffer.concat(stdout).toString("utf8")) as T)
-      } catch (cause) {
-        reject(new SecretsError(`${what} printed invalid JSON`, { cause }))
-      }
+      resolve(Buffer.concat(stdout).toString("utf8"))
     })
   })
 }

@@ -3,7 +3,7 @@ title: Google Cloud Secret Manager
 label: Google Cloud
 description: Read one bundle secret or a list of secrets from GCP Secret Manager with Application Default Credentials, a service account key or a token.
 group: Providers
-order: 5
+order: 6
 ---
 
 One secret holding many values:

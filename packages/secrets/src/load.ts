@@ -122,7 +122,7 @@ export async function loadSecrets(options: LoadOptions = {}): Promise<LoadResult
     const provider = getProvider(source.provider)
     const started = performance.now()
     try {
-      const { provider: _p, name: _n, optional: _o, ...raw } = source
+      const { provider: _p, name: _n, optional: _o, withhold: _w, ...raw } = source
       const resolved = interpolateDeep(raw, env, `source "${name}"`)
       const values = await provider.load(resolved, { env, cwd: baseDir, log, fetch: doFetch })
       return {
@@ -166,8 +166,8 @@ export async function loadSecrets(options: LoadOptions = {}): Promise<LoadResult
   const sources: SourceReport[] = []
   for (const result of settled) {
     if (result.status !== "fulfilled") continue
-    const { values, provider, report } = result.value
-    for (const name of provider.withhold) withhold.add(name)
+    const { values, provider, report, source } = result.value
+    for (const name of [...provider.withhold, ...(source.withhold ?? [])]) withhold.add(name)
     for (const [key, value] of Object.entries(values)) {
       if (!isValidKey(key) || typeof value !== "string" || value.includes("\0")) {
         log.warn(`source "${report.name}": skipped ${JSON.stringify(key)} (not a valid env var)`)
