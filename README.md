@@ -39,17 +39,16 @@ The `release` workflow tests, builds and publishes with npm provenance. It needs
 
 ## Deploy the site
 
-The site is static and builds to `apps/site/dist`. Cloudflare Pages deploys it through its Git integration: `main` to production, every other branch to a preview URL. The Pages project `rinci-secrets` uses:
+The site is static and builds to `apps/site/dist`. Cloudflare Pages deploys it through its Git integration: `main` to production, every other branch to a preview URL. The Pages project uses:
 
-| Setting               | Value                                                                           |
-| --------------------- | ------------------------------------------------------------------------------- |
-| Framework preset      | None                                                                            |
-| Root directory        | `/`                                                                             |
-| Build command         | `bun install --frozen-lockfile && bun run --filter @rinci/secrets-site build`   |
-| Build output          | `apps/site/dist`                                                                |
-| Environment variables | `BUN_VERSION` = the contents of `.bun-version`, `SKIP_DEPENDENCY_INSTALL` = `1` |
+| Setting          | Value                                        |
+| ---------------- | -------------------------------------------- |
+| Framework preset | None                                         |
+| Root directory   | `/`                                          |
+| Build command    | `bun run --filter @rinci/secrets-site build` |
+| Build output     | `apps/site/dist`                             |
 
-`SKIP_DEPENDENCY_INSTALL` stops Pages from running its own install first, which would not understand the `workspace:` dependencies. The build fails if any page is missing its share card or has a broken link. `secrets.rin.ci` is the custom domain on the project.
+Pages reads `.bun-version` and `.node-version` from the repository root and runs `bun install --frozen-lockfile` itself. Node is pinned because Astro needs a newer release than the build image's default. The build fails if any page is missing its share card or has a broken link. `secrets.rin.ci` is the custom domain on the project.
 
 From a laptop, `bun run --filter @rinci/secrets-site deploy` builds and uploads directly.
 
