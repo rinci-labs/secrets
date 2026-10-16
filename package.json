@@ -1,0 +1,28 @@
+{
+  "name": "rinci-secrets",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "bun run --filter '*' build",
+    "dev": "bun run --filter @rinci/secrets-site dev",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun run --filter @rinci/secrets test",
+    "ci": "bun run lint && bun run format:check && bun run typecheck && bun run test && bun run build"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.73.0",
+    "oxlint": "^1.88.0"
+  },
+  "overrides": {
+    "fflate": "^0.8.2"
+  },
+  "packageManager": "bun@1.4.2"
+}

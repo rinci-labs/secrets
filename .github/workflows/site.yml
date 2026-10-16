@@ -1,0 +1,37 @@
+name: Site
+
+# Builds secrets.rin.ci and deploys it to Cloudflare Pages: main to
+# production, pull requests to a preview URL.
+on:
+  push:
+    branches: [main]
+    paths: ["apps/site/**", "packages/secrets/schema.json", "bun.lock", ".github/workflows/site.yml"]
+  pull_request:
+    paths: ["apps/site/**", "packages/secrets/schema.json", "bun.lock", ".github/workflows/site.yml"]
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Fork pull requests have no access to the Cloudflare secrets.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run --filter @rinci/secrets-site build
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/site
+          command: pages deploy dist --project-name=rinci-secrets --branch=${{ github.head_ref || github.ref_name }}

@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "node", "promise"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "env": {
+    "node": true,
+    "es2024": true
+  },
+  "ignorePatterns": ["**/dist/**", "**/.astro/**", "**/node_modules/**"],
+  "rules": {
+    "no-console": "error",
+    "no-template-curly-in-string": "off",
+    "eslint/no-await-in-loop": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "eslint/no-control-regex": "off",
+    "import/no-unassigned-import": "off",
+    "typescript/no-non-null-assertion": "error",
+    "unicorn/prefer-node-protocol": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/scripts/**"],
+      "rules": { "no-console": "off" }
+    }
+  ]
+}

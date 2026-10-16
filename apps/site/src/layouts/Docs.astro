@@ -1,0 +1,116 @@
+---
+import type { MarkdownHeading } from "astro"
+import DocsNav from "../components/DocsNav.astro"
+import Footer from "../components/Footer.astro"
+import Header from "../components/Header.astro"
+import { type Doc, docHref, getDocs } from "../lib/docs"
+import { site } from "../site"
+import Base from "./Base.astro"
+
+interface Props {
+  doc: Doc
+  headings: MarkdownHeading[]
+}
+
+const { doc, headings } = Astro.props
+const docs = await getDocs()
+const currentLabel = `${doc.data.group} / ${doc.data.label ?? doc.data.title}`
+const index = docs.findIndex((d) => d.id === doc.id)
+const prev = index > 0 ? docs[index - 1] : undefined
+const next = index < docs.length - 1 ? docs[index + 1] : undefined
+const current = docHref(doc)
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3)
+const editUrl = doc.filePath ? `${site.github}/edit/main/apps/site/${doc.filePath.replace(/^.*?src\//, "src/")}` : undefined
+const title = doc.id === "index" ? `Docs - ${site.name}` : `${doc.data.title} - ${site.name} docs`
+
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Docs", item: new URL("/docs", Astro.site).href },
+    ...(doc.id === "index"
+      ? []
+      : [{ "@type": "ListItem", position: 2, name: doc.data.title, item: new URL(current, Astro.site).href }]),
+  ],
+}
+---
+
+<Base title={title} description={doc.data.description} schema={breadcrumbs}>
+  <Header />
+
+  <div class="mx-auto w-full max-w-6xl px-5 sm:px-8 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[13rem_minmax(0,1fr)_12rem]">
+    <!-- Small screens: a closed disclosure, so the page starts with the page. -->
+    <details class="group border-b border-line py-3 lg:hidden">
+      <summary class="pixel-type flex cursor-pointer list-none items-center justify-between text-[11px] text-dim">
+        {currentLabel}
+        <span class="text-[14px] transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+      </summary>
+      <div class="mt-5 pb-2"><DocsNav docs={docs} current={current} /></div>
+    </details>
+
+    <aside class="hidden lg:sticky lg:top-14 lg:block lg:h-[calc(100dvh-3.5rem)] lg:overflow-y-auto lg:py-12">
+      <DocsNav docs={docs} current={current} />
+    </aside>
+
+    <main id="content" class="min-w-0 py-10 lg:py-14">
+      <p class="pixel-type text-[11px] text-signal" data-scramble>{doc.data.group}</p>
+      <h1 class="mt-4 text-[30px] leading-[1.1] font-medium tracking-tight text-balance md:text-[38px]">
+        {doc.data.title}
+      </h1>
+      <p class="mt-4 max-w-[60ch] text-[16px] leading-relaxed text-dim">{doc.data.description}</p>
+
+      <article class="prose mt-10">
+        <slot />
+      </article>
+
+      <nav aria-label="Pagination" class="mt-16 grid gap-3 border-t border-line pt-8 sm:grid-cols-2">
+        {
+          prev ? (
+            <a href={docHref(prev)} class="group border border-line p-4 transition-colors hover:border-faint">
+              <span class="pixel-type text-[10.5px] text-faint">Previous</span>
+              <span class="mt-1.5 block text-[14px] text-dim group-hover:text-paper">← {prev.data.title}</span>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+        {
+          next && (
+            <a href={docHref(next)} class="group border border-line p-4 text-right transition-colors hover:border-faint">
+              <span class="pixel-type text-[10.5px] text-faint">Next</span>
+              <span class="mt-1.5 block text-[14px] text-dim group-hover:text-paper">{next.data.title} →</span>
+            </a>
+          )
+        }
+      </nav>
+      {
+        editUrl && (
+          <a href={editUrl} rel="noopener" class="mt-6 inline-block text-[12.5px] text-faint transition-colors hover:text-paper">
+            Edit this page on GitHub
+          </a>
+        )
+      }
+    </main>
+
+    {
+      toc.length > 1 && (
+        <aside class="hidden xl:block">
+          <nav aria-label="On this page" class="sticky top-14 py-14">
+            <p class="pixel-type mb-3 text-[10.5px] text-faint">On this page</p>
+            <ul class="space-y-1.5 text-[12.5px]">
+              {toc.map((h) => (
+                <li class:list={[h.depth === 3 && "pl-3"]}>
+                  <a href={`#${h.slug}`} class="text-dim transition-colors hover:text-paper">
+                    {h.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
+      )
+    }
+  </div>
+
+  <Footer />
+</Base>

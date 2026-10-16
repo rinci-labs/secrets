@@ -1,0 +1,124 @@
+---
+import geist from "@rinci/brand/fonts/Geist-Variable.woff2?url"
+import geistPixel from "@rinci/brand/fonts/GeistPixel-Square.woff2?url"
+import { OG_HEIGHT, OG_WIDTH, ogPath } from "../lib/og"
+import { site } from "../site"
+import "../styles/global.css"
+
+interface Props {
+  title?: string
+  description?: string
+  /** For pages that should exist but never rank, like the 404. */
+  noindex?: boolean
+  /** Extra structured data for this page. */
+  schema?: Record<string, unknown>
+  /** Describes the share card for screen readers. Defaults to the title. */
+  imageAlt?: string
+}
+
+const { title = site.title, description = site.description, noindex = false, schema, imageAlt = title } = Astro.props
+const origin = Astro.site ?? new URL(`https://${site.domain}`)
+const canonical = new URL(Astro.url.pathname.replace(/\.html$/, "").replace(/(.)\/$/, "$1"), origin)
+// Every indexed page has its own card, rendered by pages/og/[...slug].png.ts.
+const image = new URL(ogPath(noindex ? "/" : canonical.pathname), origin)
+
+/** Tells search engines what the site is about, using only facts the page states. */
+const software = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: site.name,
+  url: origin.href,
+  description: site.description,
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Windows, macOS, Linux",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  license: "https://opensource.org/licenses/MIT",
+  publisher: { "@type": "Organization", name: "RINCI", url: site.home },
+}
+const structured = schema ?? software
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content={site.themeColor} />
+    <link rel="sitemap" href="/sitemap.xml" />
+
+    <!-- The text face and the pixel face both paint above the fold. -->
+    <link rel="preload" href={geist} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={geistPixel} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(OG_WIDTH)} />
+    <meta property="og:image:height" content={String(OG_HEIGHT)} />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+
+    {!noindex && <script is:inline type="application/ld+json" set:html={JSON.stringify(structured)} />}
+  </head>
+  <body class="min-h-dvh">
+    <a
+      href="#content"
+      class="pixel-type sr-only z-50 bg-paper px-4 py-2 text-[11px] text-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+    >
+      Skip to content
+    </a>
+    <slot />
+
+    <script>
+      // Copy buttons on every code block, and pixel labels that decode through
+      // the ASCII glyphs as they scroll in.
+      import { observeScramble } from "@rinci/brand"
+
+      for (const pre of document.querySelectorAll<HTMLPreElement>("pre.astro-code")) {
+        const frame = document.createElement("div")
+        frame.className = "code-frame"
+        pre.replaceWith(frame)
+        frame.append(pre)
+        const button = document.createElement("button")
+        button.type = "button"
+        button.className = "copy-button"
+        button.textContent = "Copy"
+        button.setAttribute("aria-label", "Copy code")
+        button.addEventListener("click", async () => {
+          const text = (pre.textContent ?? "").replace(/\n$/, "")
+          try {
+            await navigator.clipboard.writeText(text)
+            button.textContent = "Copied"
+          } catch {
+            button.textContent = "Press Ctrl+C"
+          }
+          button.dataset.copied = ""
+          setTimeout(() => {
+            button.textContent = "Copy"
+            delete button.dataset.copied
+          }, 1600)
+        })
+        frame.append(button)
+      }
+
+      observeScramble(document.querySelectorAll<HTMLElement>("[data-scramble]"))
+    </script>
+  </body>
+</html>

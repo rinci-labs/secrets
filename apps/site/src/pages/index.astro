@@ -1,0 +1,244 @@
+---
+import AsciiField from "@rinci/brand/astro/AsciiField.astro"
+import PixelLogo from "@rinci/brand/astro/PixelLogo.astro"
+import { Code } from "astro:components"
+import Footer from "../components/Footer.astro"
+import Header from "../components/Header.astro"
+import Base from "../layouts/Base.astro"
+import { docHref, docSlug, getDocs } from "../lib/docs"
+import { rinciTheme } from "../shiki-theme.mjs"
+import { site } from "../site"
+
+const providers = (await getDocs()).filter((doc) => doc.data.group === "Providers" && docSlug(doc) !== "providers")
+
+const principles = [
+  {
+    title: "Credentials stay out of the config",
+    body: "The config says where secrets live. Logins come from the environment or an untracked env file, and a key that looks like a credential is rejected.",
+  },
+  {
+    title: "Withheld from your app",
+    body: "Your command gets the secrets, not the identity that fetched them. INFISICAL_CLIENT_SECRET and its kind are removed from its environment.",
+  },
+  {
+    title: "Fails closed",
+    body: "If a source fails, the command does not start. No app booting half-configured against the wrong database.",
+  },
+  {
+    title: "No shell in between",
+    body: "Arguments reach the program exactly as typed, Windows .cmd shims included. A quote or an & cannot become a second command.",
+  },
+  {
+    title: "HTTPS, or a private network",
+    body: "Plain HTTP is refused unless the host is local or private, like an in-cluster API reached over WARP or a VPN.",
+  },
+  {
+    title: "Short-lived by default",
+    body: "Access tokens minted for a run are revoked as soon as the read is done. Values are never written to disk.",
+  },
+]
+
+const config = `{
+  "$schema": "https://secrets.rin.ci/schema.json",
+  "envFiles": [".env.infisical"],
+  "sources": [
+    {
+      "provider": "infisical",
+      "domain": "https://infisical.internal",
+      "projectId": "your-project-id",
+      "environment": "\${SECRETS_ENV:-dev}"
+    },
+    { "provider": "dotenv", "path": ".env.local", "required": false }
+  ]
+}`
+
+const scripts = `{
+  "scripts": {
+    "dev": "rinci-secrets run -- bun dev",
+    "start": "rinci-secrets run -e prod -- bun start"
+  }
+}`
+---
+
+<Base>
+  <Header />
+
+  <main id="content">
+    <section
+      class="relative isolate flex flex-col items-center overflow-hidden border-b border-line px-5 pt-24 pb-20 text-center sm:px-8 md:pt-32 md:pb-28"
+    >
+      <div class="ascii-backdrop absolute inset-0 -z-10" aria-hidden="true">
+        <AsciiField />
+      </div>
+
+      <div class="w-10 sm:w-12">
+        <PixelLogo mark />
+      </div>
+      <p class="pixel-type brand-in mt-8 text-[12px] text-signal [--brand-delay:500ms]" data-scramble>
+        {site.packageName}
+      </p>
+      <h1
+        class="brand-in mt-5 max-w-[17ch] text-[34px] leading-[1.04] font-medium tracking-tight text-balance [--brand-delay:620ms] sm:text-[46px] md:text-[58px]"
+      >
+        Every secrets manager. One command.
+      </h1>
+      <p
+        class="brand-in mt-6 max-w-[48ch] text-[15px] leading-relaxed text-dim [--brand-delay:740ms] md:text-[16px]"
+      >
+        Fetch from Infisical, Doppler, Vault, AWS, GCP, Azure, 1Password or Bitwarden, then run anything with the values
+        in its environment. One config, zero dependencies, nothing written to disk.
+      </p>
+
+      <div class="brand-in mt-9 flex w-full max-w-md flex-col gap-3 [--brand-delay:860ms] sm:flex-row">
+        <div class="code-frame flex-1 text-left">
+          <pre
+            class="astro-code border-line bg-ink-2 !py-3.5 text-[13px]"><code><span class="text-faint">$ </span>bun add -d {site.packageName}</code></pre>
+        </div>
+        <a
+          href="/docs"
+          data-scramble
+          class="pixel-type inline-flex items-center justify-center bg-paper px-6 py-3.5 text-[12px] text-ink transition-transform duration-150 hover:bg-signal active:translate-y-px"
+        >
+          Read the docs
+        </a>
+      </div>
+    </section>
+
+    <!-- What a run looks like. Static on purpose: the real output, not an animation of it. -->
+    <section class="border-b border-line">
+      <div class="mx-auto grid w-full max-w-6xl gap-12 px-5 py-20 sm:px-8 md:grid-cols-[1fr_1.2fr] md:items-center md:py-24">
+        <div class="reveal">
+          <h2 class="max-w-[16ch] text-[28px] leading-tight font-medium tracking-tight md:text-[36px]">
+            Wrap the command you already run.
+          </h2>
+          <p class="mt-5 max-w-[44ch] text-[15px] leading-relaxed text-dim">
+            Sources are read in parallel and merged in order. Every run says where its values came from, how many, and
+            which existing variables it replaced. With <code class="font-mono text-paper">-v</code> it lists the names.
+            Never the values.
+          </p>
+        </div>
+        <div class="reveal border border-line bg-ink-2 font-mono text-[12.5px] leading-[1.9] sm:text-[13px]">
+          <div class="flex items-center gap-1.5 border-b border-line px-4 py-2.5" aria-hidden="true">
+            <span class="size-1.5 bg-line"></span><span class="size-1.5 bg-line"></span><span class="size-1.5 bg-signal"
+            ></span>
+          </div>
+          <pre class="overflow-x-auto px-4 py-4"><code><span class="text-faint">$</span> <span class="text-paper">rinci-secrets run -e prod -- bun dev</span>
+<span class="text-signal">secrets</span> <span class="text-dim">42 secrets from infisical 38 (184ms), dotenv 4 (1ms)</span>
+<span class="text-signal">secrets</span> <span class="text-dim">overriding 1 existing: NODE_ENV</span>
+<span class="text-paper">  ready on http://localhost:3000</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="border-b border-line">
+      <div class="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 md:py-24">
+        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <h2 class="reveal max-w-[18ch] text-[28px] leading-tight font-medium tracking-tight md:text-[36px]">
+            Nine sources, one config.
+          </h2>
+          <a href="/docs/providers" class="reveal text-[13px] text-dim transition-colors hover:text-paper">
+            Compare providers →
+          </a>
+        </div>
+        <ul class="mt-12 grid border-t border-l border-line sm:grid-cols-2 lg:grid-cols-3">
+          {
+            providers.map((doc) => (
+              <li class="border-r border-b border-line">
+                <a href={docHref(doc)} class="group block h-full p-6 transition-colors hover:bg-ink-2">
+                  <span class="pixel-type text-[12px] text-paper transition-colors group-hover:text-signal">
+                    {doc.data.label ?? doc.data.title}
+                  </span>
+                  <p class="mt-3 text-[13.5px] leading-relaxed text-dim">{doc.data.description}</p>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="border-b border-line bg-ink-2">
+      <div class="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 md:py-24">
+        <h2 class="reveal max-w-[18ch] text-[28px] leading-tight font-medium tracking-tight md:text-[36px]">
+          Safe by default, readable throughout.
+        </h2>
+        <p class="reveal mt-5 max-w-[56ch] text-[15px] leading-relaxed text-dim">
+          No dependencies sit between your credentials and the network. The request signing, the token exchange and the
+          process spawning are a few hundred lines each, in the repository, with tests.
+        </p>
+        <div class="mt-14 grid gap-x-12 md:grid-cols-2">
+          {
+            principles.map((item, index) => (
+              <article class:list={["reveal border-t border-line py-7", index < 2 && "md:border-t"]}>
+                <h3 class="flex items-center gap-3 text-[15px] font-medium text-paper">
+                  <span class="size-1.5 shrink-0 bg-signal" aria-hidden="true" />
+                  {item.title}
+                </h3>
+                <p class="mt-2 max-w-[52ch] pl-[18px] text-[14px] leading-relaxed text-dim">{item.body}</p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="border-b border-line">
+      <div class="mx-auto grid w-full max-w-6xl gap-12 px-5 py-20 sm:px-8 md:grid-cols-2 md:py-24">
+        <div class="reveal">
+          <p class="pixel-type text-[11px] text-faint">secrets.config.json</p>
+          <div class="mt-3"><Code code={config} lang="json" theme={rinciTheme} /></div>
+        </div>
+        <div class="reveal flex flex-col">
+          <p class="pixel-type text-[11px] text-faint">package.json</p>
+          <div class="mt-3"><Code code={scripts} lang="json" theme={rinciTheme} /></div>
+          <ol class="mt-8 space-y-4 text-[14px] leading-relaxed text-dim">
+            <li class="grid grid-cols-[2rem_1fr]">
+              <span class="font-mono text-faint">01</span><span>
+                Commit the config. It names projects and paths, never a password.
+              </span>
+            </li>
+            <li class="grid grid-cols-[2rem_1fr]">
+              <span class="font-mono text-faint">02</span><span>
+                Put the machine identity in <code class="font-mono text-paper">.env.infisical</code>, which git ignores.
+              </span>
+            </li>
+            <li class="grid grid-cols-[2rem_1fr]">
+              <span class="font-mono text-faint">03</span><span>
+                Pick the environment per run with <code class="font-mono text-paper">-e</code>. The config reads it as
+                <code class="font-mono text-paper">{"${SECRETS_ENV}"}</code>.
+              </span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-24 text-center sm:px-8 md:py-28">
+      <div class="mx-auto w-full max-w-2xl">
+        <h2 class="reveal text-[28px] leading-[1.08] font-medium tracking-tight text-balance md:text-[40px]">
+          Replace the script you keep copying between repos.
+        </h2>
+        <p class="reveal mx-auto mt-5 max-w-[44ch] text-[15px] leading-relaxed text-dim">
+          Start with the provider you use today. Add a second source when you need one; the command stays the same.
+        </p>
+        <div class="reveal mt-9 flex flex-wrap justify-center gap-3">
+          <a
+            href="/docs"
+            data-scramble
+            class="pixel-type inline-block bg-paper px-6 py-3.5 text-[12px] text-ink transition-transform duration-150 hover:bg-signal active:translate-y-px"
+          >
+            Get started
+          </a>
+          <a
+            href="/docs/migrating"
+            class="pixel-type inline-block border border-line px-6 py-3.5 text-[12px] text-paper transition-colors duration-150 hover:border-signal hover:text-signal"
+          >
+            Migrate a script
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Base>

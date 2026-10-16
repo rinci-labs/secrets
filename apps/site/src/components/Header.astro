@@ -1,0 +1,38 @@
+---
+import PixelLogo from "@rinci/brand/astro/PixelLogo.astro"
+import { site } from "../site"
+
+const path = Astro.url.pathname
+const links = [
+  { href: "/docs", label: "Docs", active: path === "/docs" || (path.startsWith("/docs/") && !path.startsWith("/docs/providers")) },
+  { href: "/docs/providers", label: "Providers", active: path.startsWith("/docs/providers") },
+  { href: site.github, label: "GitHub", external: true },
+]
+---
+
+<header class="sticky top-0 z-40 border-b border-line bg-ink/85 backdrop-blur-md">
+  <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-6 px-5 sm:px-8">
+    <a href="/" class="group flex items-center gap-3" aria-label={`${site.name} home`}>
+      <PixelLogo mark width={16} label="RINCI" />
+      <span class="pixel-type text-[12px] text-paper transition-colors group-hover:text-signal">{site.short}</span>
+    </a>
+    <nav aria-label="Main">
+      <ul class="flex items-center gap-5 text-[13px] sm:gap-7">
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class:list={["transition-colors hover:text-paper", link.active ? "text-paper" : "text-dim"]}
+                aria-current={link.active ? "page" : undefined}
+                {...(link.external ? { rel: "noopener", target: "_blank" } : {})}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,37 @@
+---
+import Footer from "../components/Footer.astro"
+import Header from "../components/Header.astro"
+import Base from "../layouts/Base.astro"
+import { site } from "../site"
+
+// Builds 404.html, which Cloudflare Pages serves with a real 404 status
+// instead of answering every unknown path with the home page.
+---
+
+<Base title={`Not found - ${site.name}`} description="That page does not exist." noindex>
+  <Header />
+  <main id="content" class="mx-auto flex min-h-[70dvh] w-full max-w-6xl flex-col justify-center px-5 py-20 sm:px-8">
+    <p class="pixel-type text-[12px] text-signal" data-scramble>404</p>
+    <h1 class="mt-5 max-w-[16ch] text-[32px] leading-[1.05] font-medium tracking-tight md:text-[44px]">
+      That page does not exist.
+    </h1>
+    <p class="mt-6 max-w-[44ch] text-[15px] leading-relaxed text-dim">
+      It may have moved when the docs were reorganised, or the link may be wrong.
+    </p>
+    <div class="mt-9 flex flex-wrap gap-3">
+      <a
+        href="/docs"
+        class="pixel-type inline-block bg-paper px-5 py-3.5 text-[12px] text-ink transition-transform duration-150 hover:bg-signal active:translate-y-px"
+      >
+        Open the docs
+      </a>
+      <a
+        href="/"
+        class="pixel-type inline-block border border-line px-5 py-3.5 text-[12px] text-paper transition-colors hover:border-signal hover:text-signal"
+      >
+        Home
+      </a>
+    </div>
+  </main>
+  <Footer />
+</Base>

@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run format:check
+      - run: bun run typecheck
+      - run: bun run build
+
+  # The spawn and env logic differs per platform, and the CLI must run on
+  # plain Node as well as Bun, so the tests and a smoke run cover each.
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: bun install --frozen-lockfile
+      - run: bun run test
+      - run: bun run --filter @rinci/secrets build
+      - name: Smoke test on Node 20
+        shell: bash
+        working-directory: packages/secrets
+        run: |
+          printf 'SMOKE=ok & fine\n' > smoke.env
+          node dist/cli.js --version
+          node dist/cli.js run -p dotenv --set path=smoke.env -- node -e "process.exit(process.env.SMOKE === 'ok & fine' ? 0 : 1)"

@@ -1,0 +1,26 @@
+{
+  "name": "@rinci/secrets-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && bun scripts/check-dist.ts",
+    "preview": "wrangler pages dev dist",
+    "typecheck": "astro check",
+    "deploy": "bun run build && wrangler pages deploy dist"
+  },
+  "dependencies": {
+    "@rinci/brand": "^0.1.0",
+    "@rinci/secrets": "workspace:*",
+    "astro": "^7.4.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@resvg/resvg-js": "^2.6.2",
+    "@tailwindcss/vite": "^4.3.3",
+    "satori": "^0.60.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.151.0"
+  }
+}

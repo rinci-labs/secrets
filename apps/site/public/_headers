@@ -1,0 +1,23 @@
+# Cloudflare Pages response headers. The script and style policy is a <meta>
+# tag Astro writes with a hash per inline script; framing can only be denied
+# from a header, so that part lives here.
+/*
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+# Hashed build output never changes under the same name.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Share cards keep their name when a page's title changes, so they revalidate daily.
+/og/*
+  Cache-Control: public, max-age=86400
+
+/schema.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=3600

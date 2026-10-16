@@ -1,0 +1,40 @@
+---
+import { type Doc, docHref, groupDocs } from "../lib/docs"
+
+interface Props {
+  docs: Doc[]
+  current: string
+}
+
+const { docs, current } = Astro.props
+---
+
+<nav aria-label="Docs">
+  {
+    groupDocs(docs).map(({ group, docs: items }) => (
+      <div class="mb-7 last:mb-0">
+        <p class="pixel-type mb-2.5 text-[10.5px] text-faint">{group}</p>
+        <ul class="space-y-0.5 border-l border-line">
+          {items.map((item) => {
+            const href = docHref(item)
+            const active = href === current
+            return (
+              <li>
+                <a
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  class:list={[
+                    "-ml-px block border-l py-1 pl-3.5 text-[13.5px] transition-colors",
+                    active ? "border-signal text-paper" : "border-transparent text-dim hover:text-paper",
+                  ]}
+                >
+                  {item.data.label ?? item.data.title}
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    ))
+  }
+</nav>

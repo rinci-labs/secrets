@@ -1,0 +1,20 @@
+---
+import { site } from "../site"
+
+const year = new Date().getFullYear()
+---
+
+<footer class="border-t border-line">
+  <div
+    class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-8 text-[13px] text-faint sm:flex-row sm:items-center sm:justify-between sm:px-8"
+  >
+    <a href={site.home} class="pixel-type text-[11px] transition-colors hover:text-paper">RINCI</a>
+    <ul class="flex flex-wrap gap-x-6 gap-y-2">
+      <li><a href="/docs" class="transition-colors hover:text-paper">Docs</a></li>
+      <li><a href="/docs/security" class="transition-colors hover:text-paper">Security</a></li>
+      <li><a href={site.npm} rel="noopener" class="transition-colors hover:text-paper">npm</a></li>
+      <li><a href={site.github} rel="noopener" class="transition-colors hover:text-paper">GitHub</a></li>
+      <li><span>MIT · {year}</span></li>
+    </ul>
+  </div>
+</footer>
