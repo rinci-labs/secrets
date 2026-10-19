@@ -48,28 +48,28 @@
   }
 }
 
-/* Hero ASCII: clear hole behind the copy so type does not collide with the field. */
+/* Hero ASCII: wide clear hole behind copy; field only frames the edges. */
 @utility ascii-backdrop {
-  opacity: 0.5;
+  opacity: 0.4;
   -webkit-mask-image:
     radial-gradient(
-      ellipse 78% 72% at 50% 38%,
+      ellipse 95% 85% at 50% 36%,
       transparent 0%,
-      transparent 38%,
-      rgb(0 0 0 / 0.35) 62%,
+      transparent 48%,
+      rgb(0 0 0 / 0.25) 68%,
       #000 100%
     ),
-    linear-gradient(to bottom, #000 48%, transparent 90%);
+    linear-gradient(to bottom, #000 42%, transparent 88%);
   -webkit-mask-composite: source-in;
   mask-image:
     radial-gradient(
-      ellipse 78% 72% at 50% 38%,
+      ellipse 95% 85% at 50% 36%,
       transparent 0%,
-      transparent 38%,
-      rgb(0 0 0 / 0.35) 62%,
+      transparent 48%,
+      rgb(0 0 0 / 0.25) 68%,
       #000 100%
     ),
-    linear-gradient(to bottom, #000 48%, transparent 90%);
+    linear-gradient(to bottom, #000 42%, transparent 88%);
   mask-composite: intersect;
 }
 
@@ -83,13 +83,13 @@
   .hero-copy::before {
     content: "";
     position: absolute;
-    inset: -12% -8% -6%;
+    inset: -18% -18% -10%;
     z-index: -1;
     background: radial-gradient(
-      ellipse 70% 65% at 50% 42%,
+      ellipse 78% 72% at 50% 40%,
       var(--color-ink) 0%,
-      var(--color-ink) 45%,
-      transparent 72%
+      var(--color-ink) 55%,
+      transparent 78%
     );
     pointer-events: none;
   }
