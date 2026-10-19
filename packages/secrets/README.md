@@ -58,6 +58,8 @@ const { code } = await runWithSecrets("bun", ["dev"])
 
 [secrets.rin.ci/docs](https://secrets.rin.ci/docs): configuration, every provider, the CLI, the library API and the security model.
 
+For agents and LLMs: [llms.txt](https://secrets.rin.ci/llms.txt) (index), [llms-full.txt](https://secrets.rin.ci/llms-full.txt) (all docs), and Markdown twins such as [docs/cli.md](https://secrets.rin.ci/docs/cli.md).
+
 ## License
 
 MIT

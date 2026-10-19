@@ -61,8 +61,20 @@ for (const file of pages) {
   }
 }
 
+/** Agent-facing public data that must ship with every build. */
+for (const path of ["/llms.txt", "/llms-full.txt", "/docs.md", "/schema.json"]) {
+  if (!served(path)) problems.push(`missing agent file ${path}`)
+}
+const llms = served("/llms.txt")
+if (llms) {
+  const text = readFileSync(llms, "utf8")
+  if (!text.startsWith("# ")) problems.push("llms.txt: missing H1 title")
+  if (!text.includes("/llms-full.txt")) problems.push("llms.txt: missing llms-full link")
+  if (!text.includes("@rinci/secrets")) problems.push("llms.txt: missing package name")
+}
+
 if (problems.length) {
   console.error(`${problems.length} problems in dist:\n${problems.map((p) => `  - ${p}`).join("\n")}`)
   process.exit(1)
 }
-console.info(`dist ok: ${pages.length} pages, every link, share card and tag in place`)
+console.info(`dist ok: ${pages.length} pages, every link, share card, tag and agent file in place`)

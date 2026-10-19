@@ -4,6 +4,7 @@ import DocsNav from "../components/DocsNav.astro"
 import Footer from "../components/Footer.astro"
 import Header from "../components/Header.astro"
 import { type Doc, docHref, getDocs } from "../lib/docs"
+import { docMarkdownHref } from "../lib/llms"
 import { site } from "../site"
 import Base from "./Base.astro"
 
@@ -36,6 +37,9 @@ const breadcrumbs = {
 ---
 
 <Base title={title} description={doc.data.description} schema={breadcrumbs}>
+  <Fragment slot="head">
+    <link rel="alternate" type="text/markdown" href={docMarkdownHref(doc)} title="Markdown source" />
+  </Fragment>
   <Header />
 
   <div class="mx-auto w-full max-w-6xl px-5 sm:px-8 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[13rem_minmax(0,1fr)_12rem]">

@@ -2,4 +2,8 @@
 User-agent: *
 Allow: /
 
+# Machine-readable docs for agents (https://llmstxt.org)
+# https://secrets.rin.ci/llms.txt
+# https://secrets.rin.ci/llms-full.txt
+
 Sitemap: https://secrets.rin.ci/sitemap.xml

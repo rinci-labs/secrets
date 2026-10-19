@@ -53,6 +53,10 @@ const structured = schema ?? software
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content={site.themeColor} />
     <link rel="sitemap" href="/sitemap.xml" />
+    <!-- Agents: curated index (llms.txt) and optional Markdown twin. -->
+    <link rel="describedby" href="/llms.txt" type="text/plain" />
+    <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
+    <link rel="alternate" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
 
     <!-- The text face and the pixel face both paint above the fold. -->
     <link rel="preload" href={geist} as="font" type="font/woff2" crossorigin />
@@ -76,6 +80,7 @@ const structured = schema ?? software
     <meta name="twitter:image:alt" content={imageAlt} />
 
     {!noindex && <script is:inline type="application/ld+json" set:html={JSON.stringify(structured)} />}
+    <slot name="head" />
   </head>
   <body class="min-h-dvh">
     <a
