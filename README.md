@@ -35,7 +35,7 @@ git tag v0.1.1
 git push --follow-tags
 ```
 
-The `release` workflow tests, builds and publishes with npm provenance. It needs an `NPM_TOKEN` repository secret with publish rights on the `@rinci` scope.
+The `release` workflow tests, builds and publishes via [Trusted Publishing](https://docs.npmjs.com/trusted-publishers/) (OIDC). No `NPM_TOKEN` secret. On npmjs.com, package Settings → Trusted Publisher → GitHub Actions: org `rinci-labs`, repo `secrets`, workflow `release.yml`, allow `npm publish`.
 
 ## Deploy the site
 

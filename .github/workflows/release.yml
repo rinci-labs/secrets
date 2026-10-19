@@ -1,13 +1,17 @@
 name: Release
 
-# Publishes @rinci/secrets when a version tag is pushed: `git tag v0.1.1 && git push --follow-tags`.
+# Publishes @rinci/secrets when a version tag is pushed.
+# Auth is Trusted Publishing (OIDC) — no NPM_TOKEN.
+# Configure once on npm: package Settings → Trusted Publisher → GitHub Actions
+#   org/user: rinci-labs · repo: secrets · workflow: release.yml · allow: npm publish
+# Or: npm trust github @rinci/secrets --file release.yml --repo rinci-labs/secrets --allow-publish -y
 on:
   push:
     tags: ["v*"]
 
 permissions:
   contents: read
-  id-token: write # npm provenance
+  id-token: write # OIDC for trusted publishing + provenance
 
 jobs:
   publish:
@@ -19,15 +23,16 @@ jobs:
           bun-version-file: .bun-version
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          # Trusted publishing needs Node >=22.14 and npm >=11.5.1
+          node-version: 24
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
       - run: bun install --frozen-lockfile
       - name: Tag matches package version
         working-directory: packages/secrets
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
       - run: bun run test
       - run: bun run --filter @rinci/secrets build
-      - run: npm publish --provenance --access public
+      # OIDC auth; provenance comes from publishConfig.provenance + trusted publishing
+      - run: npm publish --access public
         working-directory: packages/secrets
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
