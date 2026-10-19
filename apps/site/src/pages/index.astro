@@ -52,40 +52,43 @@ const platforms = ["macOS", "Linux", "Windows", "Bun", "Node 20.10+"]
         <AsciiField />
       </div>
 
-      <div class="w-10 sm:w-12">
-        <PixelLogo mark />
-      </div>
-      <p class="pixel-type brand-in mt-8 text-[12px] text-signal [--brand-delay:500ms]" data-scramble>
-        {site.packageName}
-      </p>
-      <h1
-        class="brand-in mt-5 max-w-[17ch] text-[34px] leading-[1.04] font-medium tracking-tight text-balance [--brand-delay:620ms] sm:text-[46px] md:text-[58px]"
-      >
-        Every secrets manager. One command.
-      </h1>
-      <p
-        class="brand-in mt-6 max-w-[50ch] text-[15px] leading-relaxed text-dim [--brand-delay:740ms] md:text-[16px]"
-      >
-        Pull secrets from Infisical, Doppler, Vault, AWS, Google Cloud, Azure, 1Password, Bitwarden, SOPS or any CLI,
-        and start your command with them in its environment. One config, zero dependencies, nothing written to disk.
-      </p>
-
-      <div class="brand-in mt-9 flex w-full max-w-md flex-col gap-3 [--brand-delay:860ms] sm:flex-row">
-        <div class="code-frame min-w-0 flex-1 text-left">
-          <pre
-            class="astro-code border-line bg-ink-2 !py-3.5 text-[13px]"><code><span class="text-faint">$ </span>bun add -d {site.packageName}</code></pre>
+      <!-- Copy sits above the field; soft ink pool keeps dim text readable. -->
+      <div class="hero-copy relative flex w-full max-w-2xl flex-col items-center">
+        <div class="w-10 sm:w-12">
+          <PixelLogo mark />
         </div>
-        <a
-          href="#setup"
-          data-scramble
-          class="pixel-type inline-flex items-center justify-center bg-paper px-6 py-3.5 text-[12px] text-ink transition-transform duration-150 hover:bg-signal active:translate-y-px"
+        <p class="pixel-type brand-in mt-8 text-[12px] text-signal [--brand-delay:500ms]" data-scramble>
+          {site.packageName}
+        </p>
+        <h1
+          class="brand-in mt-5 max-w-[17ch] text-[34px] leading-[1.04] font-medium tracking-tight text-balance text-paper [--brand-delay:620ms] sm:text-[46px] md:text-[58px]"
         >
-          Set it up
-        </a>
+          Every secrets manager. One command.
+        </h1>
+        <p
+          class="brand-in mt-6 max-w-[50ch] text-[15px] leading-relaxed text-dim [--brand-delay:740ms] md:text-[16px]"
+        >
+          Pull secrets from Infisical, Doppler, Vault, AWS, Google Cloud, Azure, 1Password, Bitwarden, SOPS or any CLI,
+          and start your command with them in its environment. One config, zero dependencies, nothing written to disk.
+        </p>
+
+        <div class="brand-in mt-9 flex w-full max-w-md flex-col gap-3 [--brand-delay:860ms] sm:flex-row">
+          <div class="code-frame min-w-0 flex-1 text-left">
+            <pre
+              class="astro-code border-line bg-ink-2 !py-3.5 text-[13px]"><code><span class="text-faint">$ </span>bun add -d {site.packageName}</code></pre>
+          </div>
+          <a
+            href="#setup"
+            data-scramble
+            class="pixel-type inline-flex items-center justify-center bg-paper px-6 py-3.5 text-[12px] text-ink transition-transform duration-150 hover:bg-signal active:translate-y-px"
+          >
+            Set it up
+          </a>
+        </div>
+        <ul class="brand-in mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[12.5px] text-faint [--brand-delay:960ms]">
+          {platforms.map((platform) => <li>{platform}</li>)}
+        </ul>
       </div>
-      <ul class="brand-in mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[12.5px] text-faint [--brand-delay:960ms]">
-        {platforms.map((platform) => <li>{platform}</li>)}
-      </ul>
     </section>
 
     <section id="setup" class="scroll-mt-14 border-b border-line">

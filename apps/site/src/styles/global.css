@@ -48,20 +48,52 @@
   }
 }
 
-/* The hero's ASCII field: quieter where the type sits, fading out at the bottom. */
+/* Hero ASCII: clear hole behind the copy so type does not collide with the field. */
 @utility ascii-backdrop {
+  opacity: 0.5;
   -webkit-mask-image:
-    radial-gradient(ellipse 40% 36% at 50% 58%, rgb(0 0 0 / 0.3), #000 100%),
-    linear-gradient(to bottom, #000 72%, transparent);
+    radial-gradient(
+      ellipse 78% 72% at 50% 38%,
+      transparent 0%,
+      transparent 38%,
+      rgb(0 0 0 / 0.35) 62%,
+      #000 100%
+    ),
+    linear-gradient(to bottom, #000 48%, transparent 90%);
   -webkit-mask-composite: source-in;
   mask-image:
-    radial-gradient(ellipse 40% 36% at 50% 58%, rgb(0 0 0 / 0.3), #000 100%),
-    linear-gradient(to bottom, #000 72%, transparent);
+    radial-gradient(
+      ellipse 78% 72% at 50% 38%,
+      transparent 0%,
+      transparent 38%,
+      rgb(0 0 0 / 0.35) 62%,
+      #000 100%
+    ),
+    linear-gradient(to bottom, #000 48%, transparent 90%);
   mask-composite: intersect;
 }
 
 /* Code blocks: hairline frame, ink-2 ground, room for the copy button. */
 @layer components {
+  /* Soft ink disc behind hero type without looking like a card. */
+  .hero-copy {
+    isolation: isolate;
+  }
+
+  .hero-copy::before {
+    content: "";
+    position: absolute;
+    inset: -12% -8% -6%;
+    z-index: -1;
+    background: radial-gradient(
+      ellipse 70% 65% at 50% 42%,
+      var(--color-ink) 0%,
+      var(--color-ink) 45%,
+      transparent 72%
+    );
+    pointer-events: none;
+  }
+
   .astro-code {
     position: relative;
     border: 1px solid var(--color-line);
