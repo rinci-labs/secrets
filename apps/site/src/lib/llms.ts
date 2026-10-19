@@ -84,6 +84,7 @@ export async function buildLlmsTxt(): Promise<string> {
     "",
     "## Optional",
     "",
+    `- [For agents (HTML)](${ORIGIN}/docs/agents)`,
     `- [HTML docs home](${ORIGIN}/docs)`,
     `- [Landing page](${ORIGIN}/)`,
     `- [Security model](${ORIGIN}/docs/security.md)`,

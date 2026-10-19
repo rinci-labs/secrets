@@ -4,8 +4,15 @@ import { site } from "../site"
 
 const path = Astro.url.pathname
 const links = [
-  { href: "/docs", label: "Docs", active: path === "/docs" || (path.startsWith("/docs/") && !path.startsWith("/docs/providers")) },
+  {
+    href: "/docs",
+    label: "Docs",
+    active:
+      path === "/docs" ||
+      (path.startsWith("/docs/") && !path.startsWith("/docs/providers") && !path.startsWith("/docs/agents")),
+  },
   { href: "/docs/providers", label: "Providers", active: path.startsWith("/docs/providers") },
+  { href: "/docs/agents", label: "Agents", active: path.startsWith("/docs/agents") },
   { href: site.github, label: "GitHub", external: true },
 ]
 ---
